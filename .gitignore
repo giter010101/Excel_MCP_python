@@ -5,6 +5,7 @@ __pycache__/
 venv/
 .env
 *.xlsx
+analyse_*.md
 *.xls
 *.xlsm
 dist/

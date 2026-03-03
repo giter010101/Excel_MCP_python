@@ -25,12 +25,27 @@ Version Python du serveur MCP Excel, portée depuis [negokaz/excel-mcp-server](h
 | `excel_unmerge_cells` | Défusionner des cellules |
 | `excel_manage_named_ranges` | Gérer les plages nommées (list/create/delete) |
 
+### 🧪 Outils Beta
+
+| Outil | Description |
+|---|---|
+| `excel_freeze_panes` | Figer/dégeler des volets (lignes et colonnes) |
+| `excel_auto_filter` | Ajouter/supprimer des filtres automatiques |
+| `excel_add_comment` | Ajouter, modifier ou supprimer des commentaires |
+| `excel_data_validation` | Validation de données (listes déroulantes, contraintes numériques…) |
+| `excel_conditional_formatting` | Mise en forme conditionnelle (échelles de couleurs, barres, icônes…) |
+
+## Prérequis
+
+- Python 3.11+
+
 ## Installation
 
+Après un `git clone` :
+
 ```bash
-pip install fastmcp openpyxl
-# ou avec uv :
-uv pip install fastmcp openpyxl
+cd Excel_MCP_Python
+pip install -e .
 ```
 
 ## Lancement
@@ -54,6 +69,18 @@ fastmcp run server.py
 }
 ```
 
+Ou avec le script installé :
+
+```json
+{
+  "mcpServers": {
+    "excel": {
+      "command": "excel-mcp-server"
+    }
+  }
+}
+```
+
 ### Variable d'environnement
 
 | Variable | Défaut | Description |
@@ -62,6 +89,4 @@ fastmcp run server.py
 
 ## Notes
 
-- **Pivot tables** : openpyxl ne supporte pas la création de tableaux croisés dynamiques. Utilisez Excel ou xlwings pour cette fonctionnalité.
-- **VBA** : les macros VBA ne sont pas supportées dans cette version Python.
 - **Chemins** : toujours utiliser des chemins absolus.

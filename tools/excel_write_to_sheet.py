@@ -25,6 +25,13 @@ def register_write_to_sheet(mcp: FastMCP):
         append: bool = False,
     ) -> str:
         """
+        BEST PRACTICE - USE FORMULAS, NOT HARD-CODED VALUES:
+        When writing data that involves ANY calculation (totals, sums, averages,
+        percentages, differences, running totals, etc.), ALWAYS use Excel formulas
+        (e.g. "=SUM(B2:B10)") instead of computing the result yourself and writing
+        a hard-coded number. This ensures the spreadsheet remains dynamic and
+        recalculable by the user. Only use literal values for raw input data.
+
         Args:
             fileAbsolutePath: Absolute path to the Excel file
             sheetName: Sheet name in the Excel file
@@ -34,6 +41,7 @@ def register_write_to_sheet(mcp: FastMCP):
                     2. NEVER use Excel functions that contain a dot (.) in their name, as openpyxl does not add the required _xlfn. prefix and Excel will show @FUNCTIONNAME and #NOM? errors.
                        FORBIDDEN (with dot): NORM.DIST, NORM.S.DIST, NORM.INV, NORM.S.INV, BINOM.DIST, T.DIST, F.DIST, CHISQ.DIST, CONFIDENCE.NORM, etc.
                        USE INSTEAD (legacy, no dot): NORMDIST, NORMSDIST, NORMINV, BINOMDIST, TDIST, FDIST, CHIDIST, CONFIDENCE, etc.
+                    3. Examples of formulas: "=SUM(A1:A10)", "=AVERAGE(B2:B5)", "=A1*B1", "=IF(A1>0,A1,0)", "=VLOOKUP(A1,Data!A:B,2,FALSE)"
             newSheet: Create a new sheet if true, otherwise write to the existing sheet
             range: Range of cells (e.g. "A1:C10"). Not needed if startCell or append is used.
             startCell: Top-left cell to start writing from (e.g. "A1"). Will automatically calculate bounds.

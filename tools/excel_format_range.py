@@ -2,7 +2,7 @@
 
 from typing import Any, Optional
 from fastmcp import FastMCP
-from openpyxl.styles import Font, PatternFill, GradientFill, Border, Side, Alignment
+from openpyxl.styles import Font, PatternFill, GradientFill, Border, Side, Alignment, Protection
 from openpyxl.styles.numbers import FORMAT_NUMBER
 from openpyxl.utils import get_column_letter
 from excel_engine import open_workbook, save_workbook, parse_range, cell_name, _escape
@@ -28,6 +28,7 @@ def _apply_style(cell, style: dict):
                 "strike": cell.font.strike,
                 "color": cell.font.color
             })
+        if "name" in font_cfg: kw["name"] = font_cfg["name"]
         if "bold" in font_cfg: kw["bold"] = font_cfg["bold"]
         if "italic" in font_cfg: kw["italic"] = font_cfg["italic"]
         if "strike" in font_cfg: kw["strike"] = font_cfg["strike"]
@@ -98,6 +99,16 @@ def _apply_style(cell, style: dict):
     if decimal is not None:
         # Build a simple number format with given decimal places
         cell.number_format = "0." + "0" * int(decimal)
+
+    # Cell protection (locked / hidden)
+    prot_cfg = style.get("protection")
+    if prot_cfg:
+        prot_kw = {}
+        if "locked" in prot_cfg:
+            prot_kw["locked"] = prot_cfg["locked"]
+        if "hidden" in prot_cfg:
+            prot_kw["hidden"] = prot_cfg["hidden"]
+        cell.protection = Protection(**prot_kw)
 
 
 def register_format_range(mcp: FastMCP):

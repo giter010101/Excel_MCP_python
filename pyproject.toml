@@ -5,8 +5,9 @@ description = "Excel MCP Server - Python version using FastMCP (port of github.c
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastmcp>=2.0.0",
+    "fastmcp>=3.1.0",
     "openpyxl>=3.1.0",
+    "pandas>=2.0.0",
 ]
 
 [project.scripts]
