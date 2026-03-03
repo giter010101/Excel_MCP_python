@@ -36,12 +36,20 @@ def register_write_to_sheet(mcp: FastMCP):
             fileAbsolutePath: Absolute path to the Excel file
             sheetName: Sheet name in the Excel file
             values: 2D array of values to write. Formulas start with "=".
-                    IMPORTANT - FORMULA RULES:
-                    1. Always write formulas in ENGLISH (e.g. SUM, AVERAGE). Excel translates to French automatically.
-                    2. NEVER use Excel functions that contain a dot (.) in their name, as openpyxl does not add the required _xlfn. prefix and Excel will show @FUNCTIONNAME and #NOM? errors.
-                       FORBIDDEN (with dot): NORM.DIST, NORM.S.DIST, NORM.INV, NORM.S.INV, BINOM.DIST, T.DIST, F.DIST, CHISQ.DIST, CONFIDENCE.NORM, etc.
-                       USE INSTEAD (legacy, no dot): NORMDIST, NORMSDIST, NORMINV, BINOMDIST, TDIST, FDIST, CHIDIST, CONFIDENCE, etc.
-                    3. Examples of formulas: "=SUM(A1:A10)", "=AVERAGE(B2:B5)", "=A1*B1", "=IF(A1>0,A1,0)", "=VLOOKUP(A1,Data!A:B,2,FALSE)"
+                    IMPORTANT - FORMULA RULES (SERVER POUR EXCEL FRANÇAIS):
+                    1. TOUJOURS écrire les formules en ANGLAIS (SUM, AVERAGE, IF, VLOOKUP…).
+                       C'est le format interne .xlsx. Excel français les affiche automatiquement
+                       en français à l'utilisateur (SUM → SOMME, AVERAGE → MOYENNE, etc.).
+                    2. NE JAMAIS utiliser les noms français (SOMME, MOYENNE, SI, RECHERCHEV…)
+                       car openpyxl les stockera tels quels et Excel affichera des erreurs.
+                    3. NE JAMAIS utiliser de fonctions avec un point (.) dans leur nom.
+                       openpyxl n'ajoute pas le préfixe _xlfn. requis → erreurs #NOM? dans Excel.
+                       INTERDIT (avec point): NORM.DIST, NORM.S.DIST, T.DIST, BINOM.DIST, etc.
+                       UTILISER À LA PLACE (legacy): NORMDIST, NORMSDIST, TDIST, BINOMDIST, etc.
+                    4. Utiliser le point-virgule (;) comme séparateur n'est PAS nécessaire.
+                       Écrire =SUM(A1,A2) avec des virgules. Excel français traduit automatiquement.
+                    5. Exemples: "=SUM(A1:A10)", "=AVERAGE(B2:B5)", "=IF(A1>0,A1,0)",
+                       "=VLOOKUP(A1,Data!A:B,2,FALSE)", "=COUNTIF(A:A,\">0\")"
             newSheet: Create a new sheet if true, otherwise write to the existing sheet
             range: Range of cells (e.g. "A1:C10"). Not needed if startCell or append is used.
             startCell: Top-left cell to start writing from (e.g. "A1"). Will automatically calculate bounds.

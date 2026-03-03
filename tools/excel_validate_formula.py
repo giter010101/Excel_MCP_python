@@ -10,7 +10,7 @@ def register_validate_formula(mcp: FastMCP):
 
     @mcp.tool(
         name="excel_validate_formula",
-        description="Validate an Excel formula's syntax without applying it. Checks that the formula starts with '=', tokenizes it, and optionally verifies cell references against the sheet.",
+        description="Validate an Excel formula's syntax without applying it. Formulas must be in ENGLISH (SUM, not SOMME) — Excel français traduit automatiquement. Checks '=' prefix, tokenizes, and optionally verifies cell references.",
     )
     def excel_validate_formula(
         fileAbsolutePath: str,
@@ -20,11 +20,13 @@ def register_validate_formula(mcp: FastMCP):
     ) -> str:
         """
         Validate an Excel formula without writing it.
+        The formula must use ENGLISH function names (SUM, AVERAGE, IF…).
+        Excel français affiche automatiquement les noms en français.
 
         Args:
             fileAbsolutePath: Absolute path to the Excel file
             sheetName: Sheet name in the Excel file
-            formula: The formula to validate (must start with '=')
+            formula: The formula to validate (must start with '=', ENGLISH function names)
             checkReferences: If True, verify that RANGE references point to
                              cells within the sheet's used area (best-effort)
         """
