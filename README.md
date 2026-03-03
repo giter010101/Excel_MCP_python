@@ -87,8 +87,6 @@ pip install -e .
 
 ```bash
 python server.py
-# ou via FastMCP CLI :
-fastmcp run server.py
 ```
 
 ## Configuration Claude Desktop / Cursor
