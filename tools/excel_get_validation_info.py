@@ -30,6 +30,7 @@ def register_get_validation_info(mcp: FastMCP):
         # Access data validations
         validations = ws.data_validations
         if validations is None or len(validations.dataValidation) == 0:
+            wb.close()
             return f"No data validation rules found in sheet '{sheetName}'"
 
         rules: list[dict] = []
@@ -75,4 +76,5 @@ def register_get_validation_info(mcp: FastMCP):
             "validationCount": len(rules),
             "rules": rules,
         }
+        wb.close()
         return json.dumps(result, indent=2, ensure_ascii=False, default=str)

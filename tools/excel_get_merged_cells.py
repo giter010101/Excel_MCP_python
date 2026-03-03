@@ -33,6 +33,7 @@ def register_get_merged_cells(mcp: FastMCP):
             merged.append(str(cell_range))
 
         if not merged:
+            wb.close()
             return f"No merged cells found in sheet '{sheetName}'"
 
         result = {
@@ -40,4 +41,5 @@ def register_get_merged_cells(mcp: FastMCP):
             "mergedRangeCount": len(merged),
             "mergedRanges": merged,
         }
+        wb.close()
         return json.dumps(result, indent=2, ensure_ascii=False)

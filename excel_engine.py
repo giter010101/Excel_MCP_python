@@ -96,6 +96,7 @@ def open_workbook(path: str, read_only: bool = False) -> Workbook:
 
 def save_workbook(wb: Workbook, path: str) -> None:
     wb.save(path)
+    wb.close()
 
 
 def create_workbook(path: str) -> Workbook:

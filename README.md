@@ -2,7 +2,7 @@
 
 Version Python du serveur MCP Excel, portée depuis [negokaz/excel-mcp-server](https://github.com/negokaz/excel-mcp-server) (Go) vers **Python + FastMCP + openpyxl**.
 
-## Outils disponibles (29)
+## Outils disponibles (28)
 
 ### 📖 Lecture / Métadonnées
 
@@ -22,7 +22,6 @@ Version Python du serveur MCP Excel, portée depuis [negokaz/excel-mcp-server](h
 | `excel_create_workbook` | Créer un nouveau classeur |
 | `excel_create_table` | Créer un tableau structuré Excel |
 | `excel_create_chart` | Créer un graphique (line, bar, pie, scatter, area) |
-| `excel_create_pivot_table` | Tableau croisé dynamique via pandas (sum, mean, count, min, max, median) |
 
 ### 📄 Gestion des feuilles
 
@@ -81,7 +80,7 @@ cd Excel_MCP_Python
 pip install -e .
 ```
 
-> **Note** : l'installation inclut `openpyxl`, `fastmcp` et `pandas` (utilisé pour les tableaux croisés dynamiques).
+> **Note** : l'installation inclut `openpyxl` et `fastmcp`.
 
 ## Lancement
 
@@ -129,7 +128,7 @@ Ou avec le script installé :
   - `=SOMME(A1:A10)` → stocké tel quel → **erreur #NOM?** ❌
 - **Séparateurs** : utiliser la virgule (`,`), pas le point-virgule (`;`). Excel français traduit automatiquement.
 - **Fonctions avec point** : éviter les fonctions contenant un `.` (ex: `NORM.DIST`). Utiliser les versions legacy (`NORMDIST`).
-- **Tableaux croisés** : calculés via pandas — le résultat est un tableau plat, pas un PivotTable natif Excel.
+
 
 ### Correspondances formules courantes (Anglais → Français dans Excel)
 

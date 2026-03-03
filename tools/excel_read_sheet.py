@@ -28,4 +28,5 @@ def register_read_sheet(mcp: FastMCP):
         """
         wb = open_workbook(fileAbsolutePath)
         result = read_sheet_html(wb, sheetName, range, showFormula, showStyle)
+        wb.close()
         return result["html"]

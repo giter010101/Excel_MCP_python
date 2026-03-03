@@ -127,6 +127,7 @@ def register_write_to_sheet(mcp: FastMCP):
         wb2 = open_workbook(fileAbsolutePath)
         ws2 = wb2[sheetName]
         table_html = build_html_table(ws2, min_col, min_row, max_col, max_row, wrote_formula)
+        wb2.close()
 
         html = "<h2>Written Sheet</h2>\n"
         html += table_html + "\n"

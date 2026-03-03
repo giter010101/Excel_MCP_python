@@ -41,4 +41,5 @@ def register_describe_sheets(mcp: FastMCP):
             )
 
         response = {"backend": "openpyxl", "sheets": sheets}
+        wb.close()
         return json.dumps(response, indent=2, ensure_ascii=False)

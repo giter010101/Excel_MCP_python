@@ -2,8 +2,19 @@
 
 from typing import Optional
 from fastmcp import FastMCP
-from excel_engine import open_workbook, save_workbook, get_used_range, _escape
+from excel_engine import open_workbook, save_workbook, get_used_range, parse_range, _escape
 
+
+def _ranges_overlap(range1: str, range2: str) -> bool:
+    """Check if two Excel ranges overlap."""
+    try:
+        c1_min, r1_min, c1_max, r1_max = parse_range(range1)
+        c2_min, r2_min, c2_max, r2_max = parse_range(range2)
+        # Two rectangles overlap if they overlap on both axes
+        return (c1_min <= c2_max and c2_min <= c1_max and
+                r1_min <= r2_max and r2_min <= r1_max)
+    except Exception:
+        return False
 
 def register_auto_filter(mcp: FastMCP):
 
@@ -45,6 +56,17 @@ def register_auto_filter(mcp: FastMCP):
             filter_range = get_used_range(ws)
         if not filter_range:
             raise ValueError("No range specified and sheet has no data")
+
+        # Check if the range overlaps with an existing Table.
+        # Excel Tables already include built-in auto-filter;
+        # adding a separate ws.auto_filter on the same range corrupts the XML.
+        for table in ws.tables.values():
+            if table.ref and _ranges_overlap(filter_range, table.ref):
+                raise ValueError(
+                    f"Cannot add auto-filter: range '{filter_range}' overlaps with "
+                    f"Table '{table.displayName}' ({table.ref}). "
+                    f"Excel Tables already include built-in auto-filters."
+                )
 
         ws.auto_filter.ref = filter_range
 
