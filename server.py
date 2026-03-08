@@ -13,6 +13,7 @@ from tools.excel_manage_rows_cols import register_manage_rows_cols
 from tools.excel_format_range import register_format_range
 from tools.excel_create_table import register_create_table
 from tools.excel_create_chart import register_create_chart
+from tools.excel_interactive_range import register_interactive_range
 
 from tools.excel_copy_sheet import register_copy_sheet
 from tools.excel_merge_cells import register_merge_cells
@@ -50,6 +51,7 @@ register_manage_rows_cols(mcp)
 register_format_range(mcp)
 register_create_table(mcp)
 register_create_chart(mcp)
+register_interactive_range(mcp)
 
 register_copy_sheet(mcp)
 register_merge_cells(mcp)

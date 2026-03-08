@@ -2,7 +2,7 @@
 
 from typing import Optional
 from fastmcp import FastMCP
-from excel_engine import open_workbook, save_workbook, get_used_range, parse_range, _escape
+from excel_engine import open_workbook, save_workbook, get_used_range, parse_range, _escape, format_result
 
 
 def _ranges_overlap(range1: str, range2: str) -> bool:
@@ -27,6 +27,7 @@ def register_auto_filter(mcp: FastMCP):
         sheetName: str,
         range: Optional[str] = None,
         remove: bool = False,
+        format: str = "json",
     ) -> str:
         """
         Add auto-filter dropdown arrows to column headers in the given range,
@@ -38,6 +39,7 @@ def register_auto_filter(mcp: FastMCP):
             range: Range to apply auto-filter to (e.g. "A1:F100").
                    Defaults to the used range of the sheet.
             remove: If True, removes any existing auto-filter from the sheet.
+            format: Output format — "json" (default) or "html"
         """
         wb = open_workbook(fileAbsolutePath)
         if sheetName not in wb.sheetnames:
@@ -47,9 +49,12 @@ def register_auto_filter(mcp: FastMCP):
         if remove:
             ws.auto_filter.ref = None
             save_workbook(wb, fileAbsolutePath)
-            html = "<h2>Auto Filter</h2>\n"
-            html += f"<p>Auto-filter removed from sheet '{_escape(sheetName)}'.</p>\n"
-            return html
+            return format_result(
+                action="Auto Filter",
+                message=f"Auto-filter removed from sheet '{sheetName}'.",
+                metadata={},
+                fmt=format,
+            )
 
         filter_range = range
         if not filter_range:
@@ -72,11 +77,13 @@ def register_auto_filter(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        html = "<h2>Auto Filter</h2>\n"
-        html += f"<p>Auto-filter applied to range {filter_range} in sheet '{_escape(sheetName)}'.</p>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>filter range: {filter_range}</li>\n"
-        html += "</ul>\n"
-        return html
+        return format_result(
+            action="Auto Filter",
+            message=f"Auto-filter applied to range {filter_range} in sheet '{sheetName}'.",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "filterRange": filter_range,
+            },
+            fmt=format,
+        )

@@ -9,7 +9,7 @@ from openpyxl.chart import (
     BarChart, LineChart, PieChart, ScatterChart, AreaChart,
     Reference, Series,
 )
-from excel_engine import open_workbook, save_workbook, parse_range, _escape
+from excel_engine import open_workbook, save_workbook, parse_range, _escape, format_result
 
 
 CHART_TYPES = {
@@ -33,6 +33,7 @@ def register_create_chart(mcp: FastMCP):
         range: str,
         chartType: str,
         title: Optional[str] = None,
+        format: str = "json",
     ) -> str:
         """
         Create a chart from a data range.
@@ -62,6 +63,7 @@ def register_create_chart(mcp: FastMCP):
                    First column = categories, remaining columns = data series.
             chartType: Type of chart: line, bar, pie, scatter, area
             title: Optional title for the chart
+            format: Output format — "json" (default) or "html"
         """
         chart_cls = CHART_TYPES.get(chartType.lower())
         if chart_cls is None:
@@ -156,16 +158,22 @@ def register_create_chart(mcp: FastMCP):
             val = data_ws.cell(row=min_row, column=col_idx).value
             series_names.append(str(val) if val else f"Series {col_idx - min_col}")
 
-        html = "<h2>Chart Created</h2>\n"
-        html += f"<p>{_escape(chartType)} chart created in sheet '{_escape(sheetName)}'.</p>\n"
-        html += "<h2>Details</h2>\n<ul>\n"
-        html += f"<li>chart type: {_escape(chartType)}</li>\n"
-        html += f"<li>data range: {_escape(range)}</li>\n"
-        html += f"<li>categories column: {data_range.split(':')[0][0]}</li>\n"
-        html += f"<li>data series: {', '.join(series_names)}</li>\n"
-        html += f"<li>data rows: {max_row - min_row} (excluding header)</li>\n"
+        meta = {
+            "backend": "openpyxl",
+            "sheetName": sheetName,
+            "chartType": chartType,
+            "dataRange": range,
+            "categoriesColumn": data_range.split(":")[0][0],
+            "dataSeries": series_names,
+            "dataRows": max_row - min_row,
+            "anchor": anchor_cell,
+        }
         if title:
-            html += f"<li>title: {_escape(title)}</li>\n"
-        html += f"<li>anchor: {anchor_cell}</li>\n"
-        html += "</ul>\n"
-        return html
+            meta["title"] = title
+
+        return format_result(
+            action="Create Chart",
+            message=f"{chartType} chart created in sheet '{sheetName}'.",
+            metadata=meta,
+            fmt=format,
+        )

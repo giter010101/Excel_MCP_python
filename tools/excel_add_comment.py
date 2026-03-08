@@ -3,7 +3,7 @@
 from typing import Optional
 from fastmcp import FastMCP
 from openpyxl.comments import Comment
-from excel_engine import open_workbook, save_workbook, _escape
+from excel_engine import open_workbook, save_workbook, _escape, format_result
 
 
 def register_add_comment(mcp: FastMCP):
@@ -16,6 +16,7 @@ def register_add_comment(mcp: FastMCP):
         fileAbsolutePath: str,
         sheetName: str,
         comments: list[dict],
+        format: str = "json",
     ) -> str:
         """
         Add, update, or remove comments on one or more cells.
@@ -36,6 +37,7 @@ def register_add_comment(mcp: FastMCP):
                     {"cell": "B2", "text": "Check this value"},
                     {"cell": "C3", "text": null}
                 ]
+            format: Output format — "json" (default) or "html"
         """
         wb = open_workbook(fileAbsolutePath)
         if sheetName not in wb.sheetnames:
@@ -67,13 +69,14 @@ def register_add_comment(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        html = "<h2>Comments</h2>\n"
-        html += f"<p>Added/updated {added} comment(s), removed {removed} comment(s) "
-        html += f"in sheet '{_escape(sheetName)}'.</p>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>comments added/updated: {added}</li>\n"
-        html += f"<li>comments removed: {removed}</li>\n"
-        html += "</ul>\n"
-        return html
+        return format_result(
+            action="Add Comment",
+            message=f"Added/updated {added} comment(s), removed {removed} comment(s) in sheet '{sheetName}'.",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "commentsAdded": added,
+                "commentsRemoved": removed,
+            },
+            fmt=format,
+        )

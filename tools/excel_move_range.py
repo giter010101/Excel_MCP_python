@@ -2,7 +2,7 @@
 
 from typing import Optional
 from fastmcp import FastMCP
-from excel_engine import open_workbook, save_workbook, _escape
+from excel_engine import open_workbook, save_workbook, _escape, format_result
 
 
 def register_move_range(mcp: FastMCP):
@@ -18,6 +18,7 @@ def register_move_range(mcp: FastMCP):
         rows: int = 0,
         cols: int = 0,
         translateFormulas: bool = True,
+        format: str = "json",
     ) -> str:
         """
         Move a range of cells within the same worksheet.
@@ -29,6 +30,7 @@ def register_move_range(mcp: FastMCP):
             rows: Number of rows to shift (negative = up, positive = down)
             cols: Number of columns to shift (negative = left, positive = right)
             translateFormulas: If True, formulas are adjusted to the new positions.
+            format: Output format — "json" (default) or "html"
         """
         if rows == 0 and cols == 0:
             return "No movement requested (rows=0, cols=0)."
@@ -53,13 +55,15 @@ def register_move_range(mcp: FastMCP):
             direction_parts.append(f"{abs(cols)} column(s) left")
         direction = ", ".join(direction_parts)
 
-        html = "<h2>Move Range</h2>\n"
-        html += f"<p>Moved range {range} in sheet '{_escape(sheetName)}': {direction}.</p>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>rows shifted: {rows}</li>\n"
-        html += f"<li>cols shifted: {cols}</li>\n"
-        html += f"<li>formulas translated: {translateFormulas}</li>\n"
-        html += "</ul>\n"
-        return html
+        return format_result(
+            action="Move Range",
+            message=f"Moved range {range} in sheet '{sheetName}': {direction}.",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "rowsShifted": rows,
+                "colsShifted": cols,
+                "formulasTranslated": translateFormulas,
+            },
+            fmt=format,
+        )

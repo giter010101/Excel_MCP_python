@@ -2,7 +2,7 @@
 
 from fastmcp import FastMCP
 from openpyxl.utils import column_index_from_string
-from excel_engine import open_workbook, save_workbook, parse_range, _escape
+from excel_engine import open_workbook, save_workbook, parse_range, _escape, format_result
 
 
 def register_delete_range(mcp: FastMCP):
@@ -16,6 +16,7 @@ def register_delete_range(mcp: FastMCP):
         sheetName: str,
         range: str,
         shiftDirection: str = "up",
+        format: str = "json",
     ) -> str:
         """
         Delete a range of cells and shift remaining cells.
@@ -27,6 +28,7 @@ def register_delete_range(mcp: FastMCP):
             shiftDirection: Direction to shift remaining cells after deletion.
                             "up" — delete rows covered by the range and shift cells up.
                             "left" — delete columns covered by the range and shift cells left.
+            format: Output format — "json" (default) or "html"
         """
         if shiftDirection not in ("up", "left"):
             raise ValueError(
@@ -51,12 +53,13 @@ def register_delete_range(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        html = "<h2>Delete Range</h2>\n"
-        html += f"<p>Range {range} deleted in sheet '{_escape(sheetName)}'.</p>\n"
-        html += f"<p>{detail}</p>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>shift direction: {shiftDirection}</li>\n"
-        html += "</ul>\n"
-        return html
+        return format_result(
+            action="Delete Range",
+            message=f"Range {range} deleted in sheet '{sheetName}'. {detail}",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "shiftDirection": shiftDirection,
+            },
+            fmt=format,
+        )

@@ -1,11 +1,12 @@
 """Tool: excel_write_to_sheet"""
 
+import json
 from typing import Any, Optional
 from fastmcp import FastMCP
 from openpyxl.utils import coordinate_to_tuple, get_column_letter
 from excel_engine import (
     open_workbook, save_workbook, parse_range,
-    build_html_table, cell_name, _escape
+    build_html_table, build_json_table, cell_name, _escape
 )
 
 
@@ -23,6 +24,7 @@ def register_write_to_sheet(mcp: FastMCP):
         range: Optional[str] = None,
         startCell: Optional[str] = None,
         append: bool = False,
+        format: str = "json",
     ) -> str:
         """
         BEST PRACTICE - USE FORMULAS, NOT HARD-CODED VALUES:
@@ -54,6 +56,7 @@ def register_write_to_sheet(mcp: FastMCP):
             range: Range of cells (e.g. "A1:C10"). Not needed if startCell or append is used.
             startCell: Top-left cell to start writing from (e.g. "A1"). Will automatically calculate bounds.
             append: If True, writes data at the first empty row at the bottom of the sheet.
+            format: Output format — "json" (default, compact) or "html" (legacy verbose)
         """
         import os
         from excel_engine import create_workbook
@@ -123,18 +126,31 @@ def register_write_to_sheet(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        # Reload to show result
+        # Reload to show written result
         wb2 = open_workbook(fileAbsolutePath)
         ws2 = wb2[sheetName]
-        table_html = build_html_table(ws2, min_col, min_row, max_col, max_row, wrote_formula)
-        wb2.close()
 
-        html = "<h2>Written Sheet</h2>\n"
-        html += table_html + "\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>read range: {range}</li>\n"
-        html += "</ul>\n<h2>Notice</h2>\n"
-        html += "<p>Values wrote successfully.</p>\n"
-        return html
+        if format == "html":
+            table_html = build_html_table(ws2, min_col, min_row, max_col, max_row, wrote_formula)
+            wb2.close()
+            html = "<h2>Written Sheet</h2>\n"
+            html += table_html + "\n"
+            html += "<h2>Metadata</h2>\n<ul>\n"
+            html += "<li>backend: openpyxl</li>\n"
+            html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
+            html += f"<li>read range: {range}</li>\n"
+            html += "</ul>\n<h2>Notice</h2>\n"
+            html += "<p>Values wrote successfully.</p>\n"
+            return html
+        else:
+            columns, rows = build_json_table(ws2, min_col, min_row, max_col, max_row, wrote_formula)
+            wb2.close()
+            result = {
+                "action": "write_to_sheet",
+                "message": "Values written successfully.",
+                "sheet": sheetName,
+                "range": range,
+                "columns": columns,
+                "rows": rows,
+            }
+            return json.dumps(result, ensure_ascii=False, default=str)

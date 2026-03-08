@@ -3,7 +3,7 @@
 from typing import Optional
 from fastmcp import FastMCP
 from openpyxl.worksheet.datavalidation import DataValidation
-from excel_engine import open_workbook, save_workbook, _escape
+from excel_engine import open_workbook, save_workbook, _escape, format_result
 
 
 def register_data_validation(mcp: FastMCP):
@@ -28,6 +28,7 @@ def register_data_validation(mcp: FastMCP):
         showInputMessage: bool = False,
         promptTitle: Optional[str] = None,
         promptMessage: Optional[str] = None,
+        format: str = "json",
     ) -> str:
         """
         Add a data validation rule to a range of cells.
@@ -61,6 +62,7 @@ def register_data_validation(mcp: FastMCP):
             showInputMessage: Show a hint message when the cell is selected.
             promptTitle: Title of the input hint.
             promptMessage: Text of the input hint.
+            format: Output format — "json" (default) or "html"
         """
         VALID_TYPES = {"list", "whole", "decimal", "date", "time", "textLength", "custom"}
         if validationType not in VALID_TYPES:
@@ -117,22 +119,23 @@ def register_data_validation(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        html = "<h2>Data Validation</h2>\n"
-        html += f"<p>Validation rule ({_escape(validationType)}) applied to range {range} "
-        html += f"in sheet '{_escape(sheetName)}'.</p>\n"
-        html += "<h2>Details</h2>\n<ul>\n"
-        html += f"<li>type: {_escape(validationType)}</li>\n"
+        meta: dict = {
+            "backend": "openpyxl",
+            "sheetName": sheetName,
+            "validatedRange": range,
+            "type": validationType,
+            "allowBlank": allowBlank,
+        }
         if operator:
-            html += f"<li>operator: {_escape(operator)}</li>\n"
+            meta["operator"] = operator
         if formula1 is not None:
-            html += f"<li>formula1: {_escape(str(formula1))}</li>\n"
+            meta["formula1"] = str(formula1)
         if formula2 is not None:
-            html += f"<li>formula2: {_escape(str(formula2))}</li>\n"
-        html += f"<li>allow blank: {allowBlank}</li>\n"
-        html += "</ul>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>validated range: {range}</li>\n"
-        html += "</ul>\n"
-        return html
+            meta["formula2"] = str(formula2)
+
+        return format_result(
+            action="Data Validation",
+            message=f"Validation rule ({validationType}) applied to range {range} in sheet '{sheetName}'.",
+            metadata=meta,
+            fmt=format,
+        )

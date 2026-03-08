@@ -197,3 +197,114 @@ def read_sheet_html(
         result += "<p>This is the last range or no more ranges available.</p>\n"
 
     return {"html": result, "read_range": current_range, "next_range": next_range}
+
+
+# ---------------------------------------------------------------------------
+# JSON helpers
+# ---------------------------------------------------------------------------
+
+def build_json_table(
+    ws,
+    min_col: int,
+    min_row: int,
+    max_col: int,
+    max_row: int,
+    show_formula: bool = False,
+) -> tuple[list, dict]:
+    """
+    Return (columns, rows) where:
+    - columns: list of column letters e.g. ["A", "B", "C"]
+    - rows: dict mapping str(excel_row_number) -> list of values
+            e.g. {"1": ["Name", "Price"], "2": ["Laptop", 999]}
+    Keys are the ACTUAL Excel row numbers so no index arithmetic is needed.
+    """
+    columns = [get_column_letter(c) for c in range(min_col, max_col + 1)]
+    rows: dict = {}
+    for r in range(min_row, max_row + 1):
+        row_data = []
+        for c in range(min_col, max_col + 1):
+            cell = ws.cell(row=r, column=c)
+            if show_formula and cell.data_type == "f":
+                row_data.append(cell.value)
+            else:
+                row_data.append(cell.value)
+        rows[str(r)] = row_data
+    return columns, rows
+
+
+def read_sheet_json(
+    wb: Workbook,
+    sheet_name: str,
+    range_str: Optional[str],
+    show_formula: bool,
+    show_style: bool,
+) -> dict:
+    """
+    Returns a dict with keys: sheet, range, columns, rows, nextRange.
+    - columns: list of column letters in order (e.g. ["A","B","C"])
+    - rows: dict mapping Excel row number (as string) to list of values
+            e.g. {"10": ["Laptop", 999, "=SUM(B10:C10)"]}
+    Row keys ARE the exact Excel row numbers — no index arithmetic needed.
+    To get cell B10: rows["10"][columns.index("B")]
+    """
+    if sheet_name not in wb.sheetnames:
+        raise ValueError(f"Sheet not found: {sheet_name!r}")
+    ws = wb[sheet_name]
+
+    pages = get_paging_ranges(ws)
+    if not pages:
+        raise ValueError("No range available to read")
+
+    current_range = range_str if range_str else pages[0]
+
+    next_range = ""
+    try:
+        idx = pages.index(current_range)
+        if idx + 1 < len(pages):
+            next_range = pages[idx + 1]
+    except ValueError:
+        pass
+
+    min_col, min_row, max_col, max_row = parse_range(current_range)
+    columns, rows = build_json_table(ws, min_col, min_row, max_col, max_row, show_formula)
+
+    result: dict = {
+        "sheet": sheet_name,
+        "range": current_range,
+        "columns": columns,
+        "rows": rows,
+    }
+    if next_range:
+        result["nextRange"] = next_range
+
+    return result
+
+
+def format_result(
+    action: str,
+    message: str,
+    metadata: dict,
+    fmt: str = "json",
+) -> str:
+    """
+    Return a confirmation string in `fmt` format ('json' or 'html').
+
+    - JSON: compact dict with action, message, plus all metadata keys.
+    - HTML: the classic <h2>/<p>/<ul> pattern.
+    """
+    import json as _json
+
+    if fmt == "html":
+        html = f"<h2>{_escape(action)}</h2>\n"
+        html += f"<p>{_escape(message)}</p>\n"
+        if metadata:
+            html += "<h2>Metadata</h2>\n<ul>\n"
+            for k, v in metadata.items():
+                html += f"<li>{_escape(str(k))}: {_escape(str(v))}</li>\n"
+            html += "</ul>\n"
+        return html
+
+    # JSON (default)
+    payload: dict = {"action": action, "message": message}
+    payload.update(metadata)
+    return _json.dumps(payload, ensure_ascii=False)

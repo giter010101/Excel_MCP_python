@@ -10,7 +10,7 @@ from openpyxl.formatting.rule import (
     IconSetRule,
     FormulaRule,
 )
-from excel_engine import open_workbook, save_workbook, _escape
+from excel_engine import open_workbook, save_workbook, _escape, format_result
 
 
 def register_conditional_formatting(mcp: FastMCP):
@@ -33,6 +33,7 @@ def register_conditional_formatting(mcp: FastMCP):
         colorScaleColors: Optional[list[str]] = None,
         dataBarColor: Optional[str] = None,
         iconStyle: Optional[str] = None,
+        format: str = "json",
     ) -> str:
         """
         Add a conditional formatting rule to a range of cells.
@@ -66,6 +67,7 @@ def register_conditional_formatting(mcp: FastMCP):
                 "3TrafficLights2", "3Signs", "3Symbols", "3Symbols2",
                 "4Arrows", "4ArrowsGray", "4RedToBlack", "4Rating",
                 "4TrafficLights", "5Arrows", "5ArrowsGray", "5Rating", "5Quarters"
+            format: Output format — "json" (default) or "html"
         """
         VALID_RULE_TYPES = {"cellIs", "colorScale", "dataBar", "iconSet", "formula"}
         if ruleType not in VALID_RULE_TYPES:
@@ -169,13 +171,14 @@ def register_conditional_formatting(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        html = "<h2>Conditional Formatting</h2>\n"
-        html += f"<p>Rule '{_escape(rule_desc)}' applied to range {range} "
-        html += f"in sheet '{_escape(sheetName)}'.</p>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>formatted range: {range}</li>\n"
-        html += f"<li>rule type: {_escape(rule_desc)}</li>\n"
-        html += "</ul>\n"
-        return html
+        return format_result(
+            action="Conditional Formatting",
+            message=f"Rule '{rule_desc}' applied to range {range} in sheet '{sheetName}'.",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "formattedRange": range,
+                "ruleType": rule_desc,
+            },
+            fmt=format,
+        )

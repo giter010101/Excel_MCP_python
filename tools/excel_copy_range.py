@@ -5,7 +5,7 @@ from copy import copy
 from fastmcp import FastMCP
 from openpyxl.formula.translate import Translator
 from openpyxl.utils import get_column_letter
-from excel_engine import open_workbook, save_workbook, parse_range, cell_name, _escape
+from excel_engine import open_workbook, save_workbook, parse_range, cell_name, _escape, format_result
 
 
 def register_copy_range(mcp: FastMCP):
@@ -21,6 +21,7 @@ def register_copy_range(mcp: FastMCP):
         targetStartCell: str,
         targetSheetName: Optional[str] = None,
         translateFormulas: bool = True,
+        format: str = "json",
     ) -> str:
         """
         Copy a range of cells to another location within the same workbook.
@@ -33,6 +34,7 @@ def register_copy_range(mcp: FastMCP):
             targetSheetName: Destination sheet name. Defaults to the source sheet.
             translateFormulas: If True, formulas are adjusted (translated) to the
                                new cell positions. If False, formulas are copied verbatim.
+            format: Output format — "json" (default) or "html"
         """
         wb = open_workbook(fileAbsolutePath)
 
@@ -96,12 +98,14 @@ def register_copy_range(mcp: FastMCP):
         tgt_end_col = tgt_start_col + (src_max_col - src_min_col)
         target_range = f"{cell_name(tgt_start_col, tgt_start_row)}:{cell_name(tgt_end_col, tgt_end_row)}"
 
-        html = "<h2>Copy Range</h2>\n"
-        html += f"<p>Copied {sourceRange} from '{_escape(sheetName)}' "
-        html += f"to {target_range} in '{_escape(target_sheet)}'.</p>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>cells copied: {cells_copied}</li>\n"
-        html += f"<li>formulas translated: {translateFormulas}</li>\n"
-        html += "</ul>\n"
-        return html
+        return format_result(
+            action="Copy Range",
+            message=f"Copied {sourceRange} from '{sheetName}' to {target_range} in '{target_sheet}'.",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "cellsCopied": cells_copied,
+                "formulasTranslated": translateFormulas,
+            },
+            fmt=format,
+        )

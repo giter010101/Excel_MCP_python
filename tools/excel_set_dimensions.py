@@ -3,7 +3,7 @@
 from typing import Optional
 from fastmcp import FastMCP
 from openpyxl.utils import get_column_letter
-from excel_engine import open_workbook, save_workbook, _escape
+from excel_engine import open_workbook, save_workbook, _escape, format_result
 
 
 def register_set_dimensions(mcp: FastMCP):
@@ -21,6 +21,7 @@ def register_set_dimensions(mcp: FastMCP):
         hiddenColumns: Optional[list[str]] = None,
         unhideRows: Optional[list[int]] = None,
         unhideColumns: Optional[list[str]] = None,
+        format: str = "json",
     ) -> str:
         """
         Set row heights and column widths. Can also hide/unhide rows and columns.
@@ -36,6 +37,7 @@ def register_set_dimensions(mcp: FastMCP):
             hiddenColumns: List of column letters to hide. Example: ["C", "E"]
             unhideRows: List of row numbers to unhide. Example: [3]
             unhideColumns: List of column letters to unhide. Example: ["C"]
+            format: Output format — "json" (default) or "html"
         """
         wb = open_workbook(fileAbsolutePath)
         if sheetName not in wb.sheetnames:
@@ -85,14 +87,13 @@ def register_set_dimensions(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        html = "<h2>Set Dimensions</h2>\n"
-        html += f"<p>Applied {len(changes)} dimension change(s) in sheet '{_escape(sheetName)}'.</p>\n"
-        html += "<h3>Changes</h3>\n<ul>\n"
-        for c in changes:
-            html += f"<li>{_escape(c)}</li>\n"
-        html += "</ul>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += "</ul>\n"
-        return html
+        return format_result(
+            action="Set Dimensions",
+            message=f"Applied {len(changes)} dimension change(s) in sheet '{sheetName}'.",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "changes": changes,
+            },
+            fmt=format,
+        )

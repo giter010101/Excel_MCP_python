@@ -5,7 +5,7 @@ from fastmcp import FastMCP
 from openpyxl.styles import Font, PatternFill, GradientFill, Border, Side, Alignment, Protection
 from openpyxl.styles.numbers import FORMAT_NUMBER
 from openpyxl.utils import get_column_letter
-from excel_engine import open_workbook, save_workbook, parse_range, cell_name, _escape
+from excel_engine import open_workbook, save_workbook, parse_range, cell_name, _escape, format_result
 
 
 def _apply_style(cell, style: dict):
@@ -124,6 +124,7 @@ def register_format_range(mcp: FastMCP):
         style: Optional[dict] = None,
         styles: Optional[list[list[Optional[dict]]]] = None,
         autoFit: bool = False,
+        format: str = "json",
     ) -> str:
         """
         Args:
@@ -133,6 +134,7 @@ def register_format_range(mcp: FastMCP):
             style: A dictionary representing a single style to apply to the entire range.
             styles: 2D array of style objects for each cell. Use null to skip a cell.
             autoFit: Automatically adjust column widths based on contents in the range.
+            format: Output format — "json" (default) or "html"
         """
         import builtins
         wb = open_workbook(fileAbsolutePath)
@@ -182,13 +184,14 @@ def register_format_range(mcp: FastMCP):
 
         save_workbook(wb, fileAbsolutePath)
 
-        html = "<h2>Formatted Range</h2>\n"
-        html += f"<p>Successfully applied styles to range {range} in sheet {_escape(sheetName)}</p>\n"
-        html += "<h2>Metadata</h2>\n<ul>\n"
-        html += "<li>backend: openpyxl</li>\n"
-        html += f"<li>sheet name: {_escape(sheetName)}</li>\n"
-        html += f"<li>formatted range: {range}</li>\n"
-        html += f"<li>cells processed: {cells_processed}</li>\n"
-        html += "</ul>\n<h2>Notice</h2>\n"
-        html += "<p>Cell styles applied successfully.</p>\n"
-        return html
+        return format_result(
+            action="Format Range",
+            message=f"Successfully applied styles to range {range} in sheet '{sheetName}'.",
+            metadata={
+                "backend": "openpyxl",
+                "sheetName": sheetName,
+                "formattedRange": range,
+                "cellsProcessed": cells_processed,
+            },
+            fmt=format,
+        )
